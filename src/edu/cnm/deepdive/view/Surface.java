@@ -1,42 +1,51 @@
 package edu.cnm.deepdive.view;
 
 import edu.cnm.deepdive.model.Ball;
-import javafx.beans.property.DoubleProperty;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
+import java.util.concurrent.TimeUnit;
+import javafx.animation.StrokeTransition;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
 public class Surface extends Pane {
 
-  BallView ballView = new BallView();
+  private BallView ballView;
 
   public Surface(int width, int height, Ball ball) {
-    ballView = new BallView();
-    ballView.centerXProperty().bind(ball.xPosProperty());
-    ballView.centerYProperty().bind(ball.yPosProperty());
-    prefWidth(width);
-    prefHeight(height);
-    getChildren().add(ballView);
+
+    getChildren().add(new Rectangle(width,height));
+    getChildren().add(new BallView(ball));
+    ball.setBounds(getBoundsInParent());
+    ball.setRadius(getBoundsInParent().getWidth()/20);
 
     setStyle("-fx-background-color: #2f2f2f;"
         + "-fx-padding: 10");
 
-  }
 
-  public void update(){
 
   }
-
 
 
   private class BallView extends Circle {
 
-    BallView() {
-      radiusProperty().bind(Surface.this.heightProperty().divide(10));
-      this.setFill(Color.RED);
-          //setBackground(new Background(new BackgroundFill(Color.RED,null,null)));
+    private Color ballColor = Color.DEEPSKYBLUE;
+    private Color collisionColor = Color.GREENYELLOW;
+
+    public BallView(Ball ball) {
+      this.setFill(ballColor);
+      centerXProperty().bind(ball.xPosProperty());
+      centerYProperty().bind(ball.yPosProperty());
+      radiusProperty().bind(ball.radiusProperty());
+      setStroke(ballColor);
+      setStrokeWidth(10);
+      ball.hasCollided().addListener(observable -> {
+        if(ball.hasCollided().getValue()){
+          new StrokeTransition(Duration.seconds(1),this,collisionColor,ballColor).play();
+        }
+      });
     }
   }
 
